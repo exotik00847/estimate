@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Estimate Generator</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        /* General Styles */
+        body {
+            background-color: #f8f9fa;
+            font-family: 'Arial', sans-serif;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .card {
+            margin-bottom: 20px;
+            border: none;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .card-body {
+            padding: 20px;
+        }
+
+        .btn {
+            margin-right: 10px;
+        }
+
+        /* Print Styles */
+        @media print {
+            @page {
+                size: A4 landscape;
+                margin: 1cm;
+            }
+
+            body {
+                -webkit-print-color-adjust: exact;
+                margin: 0;
+                padding: 0;
+                background: white;
+            }
+
+            .input-section {
+                display: none;
+            }
+
+            .print-section {
+                display: block;
+                width: 100%;
+                padding: 10px;
+            }
+
+            .po-table {
+                font-size: 10px;
+                border-collapse: collapse;
+                page-break-inside: avoid;
+            }
+
+            .po-table th, .po-table td {
+                padding: 4px;
+                border: 1px solid #ddd;
+                text-align: left;
+            }
+
+            h1, h5 {
+                page-break-inside: avoid;
+                font-size: 12px;
+            }
+
+            p {
+                font-size: 10px;
+            }
+        }
+
+        /* Print Section */
+        .print-section {
+            display: none;
+            width: 29.7cm;
+            min-height: 21cm;
+            padding: 20px;
+            margin: 0 auto;
+            background: white;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .po-table {
+            width: 100%;
+            table-layout: fixed;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+
+        .po-table th, .po-table td {
+            padding: 8px;
+            font-size: 12px;
+            border: 1px solid #ddd;
+        }
+
+        textarea.form-control {
+            height: 120px;
+        }
+    </style>
+</head>
+<body class="bg-light">
+    <div class="container">
+        <!-- Input Section -->
+        <div class="input-section py-4">
+            <h2 class="mb-4">Estimate Generator</h2>
+
+            <!-- Vendor Details -->
+            <div class="card mb-4">
+                <div class="card-body">
+                    <h5>Vendor Details</h5>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <input type="text" class="form-control" id="vendorName" placeholder="Vendor Name">
+                        </div>
+                        <div class="col-md-6">
+                            <input type="text" class="form-control" id="vendorAddress" placeholder="Vendor Address">
+                        </div>
+                        <div class="col-md-6">
+                            <input type="text" class="form-control" id="vendorGST" placeholder="Vendor GSTIN">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Order Information -->
+            <div class="card mb-4">
+                <div class="card-body">
+                    <h5>Order Information</h5>
+                    <div class="row g-3">
+                        <div class="col-md-3">
+                            <input type="text" class="form-control" id="orderNo" placeholder="Order Number">
+                        </div>
+                        <div class="col-md-3">
+                            <input type="date" class="form-control" id="orderDate">
+                        </div>
+                        <div class="col-md-3">
+                            <input type="text" class="form-control" id="supplyPlace" placeholder="Place of Supply">
+                        </div>
+                        <div class="col-md-3">
+                            <input type="date" class="form-control" id="dueDate">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Product Details -->
+            <div class="card mb-4">
+                <div class="card-body">
+                    <h5>Product Details</h5>
+                    <div id="productRows">
+                        <div class="product-row row g-3 mb-3">
+                            <div class="col-md-3">
+                                <input type="text" class="form-control" placeholder="Item Name">
+                            </div>
+                            <div class="col-md-2">
+                                <input type="number" class="form-control" placeholder="Qty">
+                            </div>
+                            <div class="col-md-2">
+                                <input type="number" class="form-control" placeholder="MRP">
+                            </div>
+                            <div class="col-md-2">
+                                <input type="number" class="form-control" placeholder="Bill">
+                            </div>
+                            <div class="col text-end">
+                                <button class="btn btn-danger btn-sm" onclick="removeProductRow(this)">Remove</button>
+                            </div>
+                        </div>
+                    </div>
+                    <button class="btn btn-secondary mt-3" onclick="addProductRow()">Add Product</button>
+                </div>
+            </div>
+
+            <!-- Transportation Discount -->
+            <div class="card mb-4">
+                <div class="card-body">
+                    <h5>Transportation Discount</h5>
+                    <div class="row g-3">
+                        <div class="col-md-3">
+                            <input type="number" class="form-control" id="transportationDiscount" placeholder="Enter Local Transportation">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Terms & Conditions -->
+            <div class="card mb-4">
+                <div class="card-body">
+                    <h5>Terms & Conditions</h5>
+                    <textarea class="form-control" id="terms" placeholder="Enter terms and conditions here..."></textarea>
+                </div>
+            </div>
+
+            <!-- Generate Estimate Button -->
+            <button class="btn btn-primary" onclick="generateEstimate()">Generate Estimate</button>
+        </div>
+
+        <!-- Print Section -->
+        <div class="print-section">
+            <div class="header-section">
+                <h1>Estimate</h1>
+            </div>
+
+            <!-- Vendor and Order Details -->
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <h5>Vendor Details</h5>
+                    <p id="printVendorName"></p>
+                    <p id="printVendorAddress"></p>
+                    <p>GSTIN: <span id="printVendorGST"></span></p>
+                </div>
+                <div class="col-md-6">
+                    <h5>Order Information</h5>
+                    <p>Order No: <span id="printOrderNo"></span></p>
+                    <p>Date: <span id="printOrderDate"></span></p>
+                    <p>Place of Supply: <span id="printSupplyPlace"></span></p>
+                    <p>Due Date: <span id="printDueDate"></span></p>
+                </div>
+            </div>
+
+            <!-- Product Table -->
+            <table class="table po-table table-bordered">
+                <thead class="table-light">
+                    <tr>
+                        <th>Sr No.</th>
+                        <th>Item Name</th>
+                        <th>Qty</th>
+                        <th>MRP</th>
+                        <th>Bill</th>
+                        <th>Tax (18%)</th>
+                        <th>Total Tax</th>
+                        <th>Total Bill</th>
+                        <th>Total Discount</th>
+                        <th>Total</th>
+                    </tr>
+                </thead>
+                <tbody id="printProducts"></tbody>
+            </table>
+
+            <!-- Totals and Terms -->
+            <div class="row mt-3">
+                <div class="col-md-6">
+                    <h5>Tax Details</h5>
+                    <p>Total Tax: ₹<span id="totalTax">0.00</span></p>
+                </div>
+                <div class="col-md-6 text-end">
+                    <h4>Total Bill: ₹<span id="totalBill">0.00</span></h4>
+                    <p>Total Discount: ₹<span id="totalDiscount">0.00</span></p>
+                    <p>Grand Total: ₹<span id="grandTotal">0.00</span></p>
+                </div>
+            </div>
+
+            <div class="row mt-3">
+                <div class="col-md-6">
+                    <h5>Total Material Weight</h5>
+                    <p><span id="totalMaterialWeight">0</span> KG</p>
+                </div>
+                <div class="col-md-6">
+                    <h5>Terms & Conditions</h5>
+                    <p id="printTerms"></p>
+                </div>
+            </div>
+
+            <!-- Footer -->
+            <div class="mt-4">
+                <p><strong>Amount in Words:</strong> <span id="amountWords"></span></p>
+                <p><strong>Terms & Conditions:</strong> Thanks for doing business with us!</p>
+                <div class="text-end mt-4">
+                    <p>Authorized Signatory</p>
+                    <p>_________________________</p>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="text-center mt-4">
+                <button onclick="window.print()" class="btn btn-primary btn-sm">Print</button>
+                <button onclick="showInputSection()" class="btn btn-warning btn-sm">Edit</button>
+                <button onclick="resetForm()" class="btn btn-secondary btn-sm">Create New</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        function addProductRow() {
+            const newRow = `
+                <div class="product-row row g-3 mb-3">
+                    <div class="col-md-3"><input type="text" class="form-control" placeholder="Item Name"></div>
+                    <div class="col-md-2"><input type="number" class="form-control" placeholder="Qty"></div>
+                    <div class="col-md-2"><input type="number" class="form-control" placeholder="MRP"></div>
+                    <div class="col-md-2"><input type="number" class="form-control" placeholder="Bill"></div>
+                    <div class="col text-end">
+                        <button class="btn btn-danger btn-sm" onclick="removeProductRow(this)">Remove</button>
+                    </div>
+                </div>`;
+            $('#productRows').append(newRow);
+        }
+
+        function removeProductRow(button) {
+            $(button).closest('.product-row').remove();
+        }
+
+        function generateEstimate() {
+            $('#printVendorName').text($('#vendorName').val());
+            $('#printVendorAddress').text($('#vendorAddress').val());
+            $('#printVendorGST').text($('#vendorGST').val());
+            $('#printOrderNo').text($('#orderNo').val());
+            $('#printOrderDate').text($('#orderDate').val());
+            $('#printSupplyPlace').text($('#supplyPlace').val());
+            $('#printDueDate').text($('#dueDate').val());
+
+            const transportationDiscount = parseFloat($('#transportationDiscount').val()) || 0;
+            let totalTax = 0, totalBill = 0, totalDiscount = 0, grandTotal = 0, totalMaterialWeight = 0;
+            let productsHTML = '';
+
+            $('.product-row').each(function(index) {
+                const inputs = $(this).find('input');
+                const itemName = inputs[0].value;
+                const qty = parseFloat(inputs[1].value) || 0;
+                const mrp = parseFloat(inputs[2].value) || 0;
+                const bill = parseFloat(inputs[3].value) || 0;
+                const tax = bill * 0.18;
+                const totalTaxAmount = qty * bill * 0.18;
+                const totalBillAmount = (bill + tax) * qty;
+                const discount = (qty * mrp) - totalBillAmount;
+                const total = qty * mrp;
+
+                let weightPerPiece = 0;
+                const lowerItemName = itemName.toLowerCase();
+                if (lowerItemName.startsWith('qz-mf-')) weightPerPiece = 30;
+                else if (lowerItemName.startsWith('hm-mf-')) weightPerPiece = 15;
+                else if (lowerItemName.startsWith('qz-')) weightPerPiece = 12;
+                else if (lowerItemName.startsWith('hm-')) weightPerPiece = 6;
+                else if (lowerItemName.startsWith('ss-')) weightPerPiece = 3;
+                totalMaterialWeight += qty * weightPerPiece;
+
+                totalTax += totalTaxAmount;
+                totalBill += totalBillAmount;
+                totalDiscount += discount;
+                grandTotal += total;
+
+                productsHTML += `
+                    <tr>
+                        <td>${index + 1}</td>
+                        <td>${itemName}</td>
+                        <td>${qty}</td>
+                        <td>₹${mrp.toFixed(2)}</td>
+                        <td>₹${bill.toFixed(2)}</td>
+                        <td>18%</td>
+                        <td>₹${totalTaxAmount.toFixed(2)}</td>
+                        <td>₹${totalBillAmount.toFixed(2)}</td>
+                        <td>₹${discount.toFixed(2)}</td>
+                        <td>₹${total.toFixed(2)}</td>
+                    </tr>`;
+            });
+
+            totalDiscount += transportationDiscount;
+            grandTotal = totalBill + totalDiscount;
+
+            $('#totalTax').text(totalTax.toFixed(2));
+            $('#totalBill').text(totalBill.toFixed(2));
+            $('#totalDiscount').text(totalDiscount.toFixed(2));
+            $('#grandTotal').text(grandTotal.toFixed(2));
+            $('#amountWords').text(`Rupees ${grandTotal.toFixed(2)} Only`);
+            $('#totalMaterialWeight').text(totalMaterialWeight.toFixed(2));
+            $('#printTerms').text($('#terms').val());
+
+            $('#printProducts').html(productsHTML);
+            $('.input-section').hide();
+            $('.print-section').show();
+        }
+
+        function showInputSection() {
+            $('.print-section').hide();
+            $('.input-section').show();
+        }
+
+        function resetForm() {
+            $('.print-section').hide();
+            $('.input-section').show();
+            $('input').val('');
+            $('#terms').val('');
+            $('#productRows').html(`
+                <div class="product-row row g-3 mb-3">
+                    <div class="col-md-3"><input type="text" class="form-control" placeholder="Item Name"></div>
+                    <div class="col-md-2"><input type="number" class="form-control" placeholder="Qty"></div>
+                    <div class="col-md-2"><input type="number" class="form-control" placeholder="MRP"></div>
+                    <div class="col-md-2"><input type="number" class="form-control" placeholder="Bill"></div>
+                    <div class="col text-end">
+                        <button class="btn btn-danger btn-sm" onclick="removeProductRow(this)">Remove</button>
+                    </div>
+                </div>`);
+        }
+    </script>
+</body>
+</html>
